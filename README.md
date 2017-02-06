@@ -53,5 +53,9 @@ You can also use it as a command line tool as follows:
 
 java -jar AudioBoot.jar someExampleFile.hex
 
+<p align="center">
+  <img src="/doc/audioInputSchematic.PNG" width="640"/>
+</p>
+
 
 
