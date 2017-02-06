@@ -13,6 +13,10 @@ The bootloader presented here has the following features:
 - java program to generate the sound, works on win and linux
 - a led indicator for the state of the boot loader
 
+<p align="left">
+  <img src="/doc/audioInputSchematic.PNG" width="480"/>
+</p>
+
 ## bootloader operation
 
 1. After reset the bootloader waits for about 5 seconds for a signal from the audio input. 
@@ -53,9 +57,7 @@ You can also use it as a command line tool as follows:
 
 java -jar AudioBoot.jar someExampleFile.hex
 
-<p align="left">
-  <img src="/doc/audioInputSchematic.PNG" width="320"/>
-</p>
+
 
 
 
