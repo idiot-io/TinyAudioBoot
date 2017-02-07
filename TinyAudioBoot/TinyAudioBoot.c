@@ -93,18 +93,53 @@
   It is mandatory to keep the list of authors in this code.
 
 */
+/*
+
+			
+           schematic for audio input
+           =========================			
+  	
+			          VCC	
+			           |	 
+                      | | 10K
+                      | |
+                       |
+			           |
+ audio in >-----||-----o------->  soundprog ( digital input pin )
+               100nF   |
+	                   |  
+                      | | 10K
+                      | |
+			           |
+                      GND
+
+
+
+                              ATTINY85 Pins
+                              =============
+  
+                                 _______
+                                |   U   |
+                      reset/PB5-|       |- VCC
+             D3/A3          PB3-| ATTINY|- PB2       D2/A1
+soundprog->  D4/A2          PB4-|   85  |- PB1       D1     -> ARDUINO_LED
+                            GND-|       |- PB0       D0
+                                |_______|
+				 
+*/
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdlib.h>
 #include <avr/boot.h>
 #include <avr/pgmspace.h>
-// This value has probably to be adapted:
-#define BOOTLOADER_ADDRESS     0x1C00                        // bootloader start address, e.g. 0x1C00 = 7168
 
-//#define BOOTLOADER_ADDRESS     0x1800                        // bootloader start address, e.g. 0x1800 = 6144
+// This value has to be adapted to the bootloader size
+#define BOOTLOADER_ADDRESS     0x1C00               // bootloader start address, e.g. 0x1C00 = 7168, set .text to 0x0E00
 
-#define RJMP                   (0xC000U - 1)                 // opcode of RJMP minus offset 1
+//#define BOOTLOADER_ADDRESS     0x1800                 // bootloader start address, e.g. 0x1800 = 6144, set .text to 0x0c00
+
+#define RJMP                   (0xC000U - 1)          // opcode of RJMP minus offset 1
 #define RESET_SECTION          __attribute__((section(".bootreset"))) __attribute__((used))
 
 // this variable seems to be unused
@@ -112,12 +147,47 @@
 // you could find it in the *.hex file
 uint16_t                       resetVector RESET_SECTION = RJMP + BOOTLOADER_ADDRESS / 2;
 
-#define LEDPORT (1<<PB1); //PB1 pin 6 Attiny85
-#define INITLED {DDRB|=LEDPORT;}
+#ifdef DEBUGON
 
-#define LEDON {PORTB|=LEDPORT;}
-#define LEDOFF {PORTB&=~LEDPORT;}
-#define TOGGLELED {PORTB^=LEDPORT;}
+	#define DEBUGPIN       ( 1<<PB2 ) 
+	#define INITDEBUGPIN   { DDRB  |=  DEBUGPIN; }
+
+	#define DEBUGPINON     { PORTB |=  DEBUGPIN;}
+	#define DEBUGPINOFF    { PORTB &= ~DEBUGPIN;}
+	#define TOGGLEDEBUGPIN { PORTB ^=  DEBUGPIN;}
+	
+#else
+
+	#define DEBUGPIN       
+	#define INITDEBUGPIN   
+
+	#define DEBUGPINON     
+	#define DEBUGPINOFF    
+	#define TOGGLEDEBUGPIN 
+	
+#endif
+	
+	
+#define USELED
+#ifdef USELED
+
+	#define LEDPORT    ( 1<<PB0 ); //PB1 pin 6 Attiny85
+	#define INITLED    { DDRB|=LEDPORT; }
+
+	#define LEDON      { PORTB|=LEDPORT;}
+	#define LEDOFF     { PORTB&=~LEDPORT;}
+	#define TOGGLELED  { PORTB^=LEDPORT;}
+
+#else
+
+	#define LEDPORT 
+	#define INITLED 
+
+	#define LEDON 
+	#define LEDOFF 
+	#define TOGGLELED 
+
+#endif
 
 #define INPUTAUDIOPIN (1<<PB4) //
 #define PINVALUE (PINB&INPUTAUDIOPIN)
@@ -249,6 +319,7 @@ uint8_t receiveFrame()
     counter++;
   }
   p = PINVALUE;
+  
   //****************************************************************
   //receive data bits
   k = 8;
@@ -263,6 +334,7 @@ uint8_t receiveFrame()
     while (TIMER < delayTime);
 
     t = PINVALUE;
+	  
 
     counter++;
 
@@ -276,7 +348,8 @@ uint8_t receiveFrame()
     };
   }
   //uint16_t crc = (uint16_t)FrameData[CRCLOW] + FrameData[CRCHIGH] * 256;
-
+  
+  
   return true;
 }
 
@@ -488,12 +561,13 @@ void a_main()
 
         case PROGCOMMAND:
           {
-            uint16_t k = (((uint16_t)FrameData[PAGEINDEXHIGH]) << 8) + FrameData[PAGEINDEXLOW];
-			uint16_t address=SPM_PAGESIZE * k;
+            uint16_t pageNumber = (((uint16_t)FrameData[PAGEINDEXHIGH]) << 8) + FrameData[PAGEINDEXLOW];
+			uint16_t address=SPM_PAGESIZE * pageNumber;
 			
-            if( address < BOOTLOADER_ADDRESS-PAGESIZE) // prevent bootloader form self killing
+            if( address < BOOTLOADER_ADDRESS) // prevent bootloader form self killing
 			{
 				boot_program_page (address, FrameData + DATAPAGESTART);  // erase and program page
+				TOGGLELED;
 			}
           }
           break;
@@ -519,6 +593,7 @@ void a_main()
 
 int main()
 {
+  INITDEBUGPIN
   INITLED;
   INITAUDIOPORT;
 
