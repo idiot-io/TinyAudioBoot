@@ -115,17 +115,32 @@
 
 
 
-                              ATTINY85 Pins
-                              =============
-  
-                                 _______
-                                |   U   |
-                      reset/PB5-|       |- VCC
-             D3/A3          PB3-| ATTINY|- PB2       D2/A1
-soundprog->  D4/A2          PB4-|   85  |- PB1       D1     -> ARDUINO_LED
-                            GND-|       |- PB0       D0
-                                |_______|
-				 
+                              Pinout ATtiny25/45/85
+                              =====================
+			
+				
+	   			     _______
+                                    |   U   |
+         (PCINT5/RESET/ADC0/dW) PB5-|       |- VCC
+  (PCINT3/XTAL1/CLKI/OC1B/ADC3) PB3-| ATTINY|- PB2 (SCK/USCK/SCL/ADC1/T0/INT0/PCINT2) 
+  (PCINT4/XTAL2/CLKO/OC1B/ADC2) PB4-|   85  |- PB1 (MISO/DO/AIN1/OC0B/OC1A/PCINT1) 
+                                GND-|       |- PB0 (MOSI/DI/SDA/AIN0/OC0A/OC1A/AREF/PCINT0)	 
+                                    |_______|
+
+				  
+				  
+	  			  Pinout ARDUINO  
+				  ==============
+                                     _______				  
+                                    |   U   |				  
+                          reset/PB5-|       |- VCC				  
+                 D3/A3          PB3-| ATTINY|- PB2       D2/A1				  
+    soundprog->  D4/A2          PB4-|   85  |- PB1       D1     -> ARDUINO_LED
+                                GND-|       |- PB0       D0
+                                    |_______|		
+
+
+				  
 */
 
 #include <avr/io.h>
