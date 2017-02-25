@@ -54,9 +54,11 @@ AudioBootAttiny85.jar
 which on the most operating systems you can start by just clicking on it. 
 The wav-file is created and stored in the same directory where you started the java program. 
 
-You can also use it as a command line tool as follows:
+You can also use AudioBoot.jar directly from the command line without starting the GUI with the following command:
 
 > java -jar AudioBoot.jar someExampleFile.hex
+
+This might be usefull if you want to integrate it in your own applications.
 
 
 
