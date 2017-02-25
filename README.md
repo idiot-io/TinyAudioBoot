@@ -49,7 +49,7 @@ With this setting the Attiny is running at 16Mhz
 
 There is a Java Program
 
-AudioBootAttiny85.jar
+**AudioBootAttiny85.jar**
 
 which on the most operating systems you can start by just clicking on it. 
 The wav-file is created and stored in the same directory where you started the java program. 
