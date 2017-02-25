@@ -51,11 +51,12 @@ There is a Java Program
 
 AudioBootAttiny85.jar
 
-which on the most operating systems you can start by just clicking on it.
+which on the most operating systems you can start by just clicking on it. 
+The wav-file is created and stored in the same directory where you started the java program. 
 
 You can also use it as a command line tool as follows:
 
-java -jar AudioBoot.jar someExampleFile.hex
+> java -jar AudioBoot.jar someExampleFile.hex
 
 
 
