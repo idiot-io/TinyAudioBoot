@@ -18,15 +18,15 @@
   
   This version has the ability to skip the bootloader at start up.
   This is useful for faster MCU operation at power on.
-  To skip the bootloader the level of the soundprog pin hast to be
-  above 3/4 VCC.
-
+  The bootloader is only entered when a button is pressed to
+  pull the soundprog line low.
+  
+  //===== historic comments ======
   The Atmega168 seems to have the switching voltage level at 2.2V
   The Atmega8 at 1.4V
   The switching levels of the input pins may vary a little bit from one
   MC to another.  If you to be able to adjust the voltages,
   use a 10k poti as voltage divider.
-
 
   As development platform an Arduino Diecimilla was used. Therefore you
   will find many #ifdefs for the Arduino in this code.
@@ -118,12 +118,12 @@
                       | | 10K
                       | |
                        |
-                       \
-                        \===| if switch is open, bootloader will be skipped
-                         \ 
-                       |
-                       |
-                      GND
+                       |----o
+                       |     \===| press button to enter bootloader mode
+                       |      \ 
+                       |    o  
+                       |    |
+                      GND  GND
 
 
 
@@ -226,7 +226,7 @@ uint16_t resetVector RESET_SECTION = RJMP + BOOTLOADER_ADDRESS / 2;
 #define PINHIGH (!PINLOW)
 
 #define WAITBLINKTIME 10000
-#define BOOT_TIMEOUT  10
+#define BOOT_TIMEOUT  50
 
 #define true (1==1)
 #define false !true
@@ -560,8 +560,8 @@ inline void initADC()
 	   ADC Prescaler needs to be set so that the ADC input frequency is between 50 - 200kHz.
   
            For more information, see table 17.5 "ADC Prescaler Selections" in 
-           chapter 17.13.2 "ADCSRA – ADC Control and Status Register A"
-          (pages 140 and 141 on the complete ATtiny25/45/85 datasheet, Rev. 2586M–AVR–07/10)
+           chapter 17.13.2 "ADCSRA : ADC Control and Status Register A"
+          (pages 140 and 141 on the complete ATtiny25/45/85 datasheet, Rev. 2586M-AVR-07/10)
 
            Valid prescaler values for various clock speeds
 	
@@ -653,7 +653,7 @@ inline void checkBootloaderSkip()
   ADCSRA |= (1 << ADSC);         // start ADC measurement
   while (ADCSRA & (1 << ADSC) ); // wait till conversion complete
   
-  if (ADCH > 196) exitBootloader(); // skip level set to 3/4 VCC
+  if (ADCH > 75) exitBootloader(); // skip the bootloader if the right button is pressed
 }
 
 //***************************************************************************************
@@ -665,12 +665,10 @@ static inline void a_main()
   uint16_t time = WAITBLINKTIME;
   uint8_t timeout = BOOT_TIMEOUT;
 
-  checkBootloaderSkip();
-
   p = PINVALUE;
 
   //*************** wait for toggling input pin or timeout ******************************
-  uint8_t exitcounter = 4;
+  uint8_t exitcounter = 3;
   while (1)
   {
 
@@ -784,9 +782,12 @@ static inline void a_main()
 
 int main()
 {
+  INITAUDIOPORT;
+  
+  checkBootloaderSkip();
+	
   INITDEBUGPIN
   INITLED;
-  INITAUDIOPORT;
 
   // Timer 2 normal mode, clk/8, count up from 0 to 255
   // ==> frequency @16MHz= 16MHz/8/256=7812.5Hz
