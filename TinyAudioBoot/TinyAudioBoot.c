@@ -112,18 +112,18 @@
                       | |
                        |
                        |
- audio in >-----||-----o------->  soundprog ( digital input pin )
-               100nF   |
-                       |  
-                      | | 10K
-                      | |
-                       |
-                       |----o
-                       |     \===| press button to enter bootloader mode
-                       |      \ 
-                       |    o  
-                       |    |
-                      GND  GND
+ audio in >-----||-----o--------o---->  soundprog ( digital input pin )
+               100nF   |        |
+                       |        |
+                      | | 10K   |
+                      | |       |
+                       |        |
+                       |        o
+                       |         \===| press button to enter bootloader mode
+                       |          \ 
+                       |        o  
+                       |        |
+                      GND      GND
 
 
 
