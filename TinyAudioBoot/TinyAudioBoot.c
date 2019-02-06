@@ -15,6 +15,11 @@
   output pin: LED for status indication of the bootloader
 
   The input pin is also connected by a 10nF capacitor to the PC line out
+  
+  This version has the ability to skip the bootloader at start up.
+  This is useful for faster MCU operation at power on.
+  To skip the bootloader the level of the soundprog pin hast to be
+  above 3/4 VCC.
 
   The Atmega168 seems to have the switching voltage level at 2.2V
   The Atmega8 at 1.4V
@@ -84,7 +89,8 @@
   v2.0  13.6.2012 C. -H-A-B-E-R-E-R-  setup for various MCs
   v3.0  30.1.2017 B. -P-r-a-k-o-s-a-  first version of Attiny85 Audio Bootloader
   v3.1  04.2.2017 C. -H-A-B-E-R-E-R-  clean reset vector added, description added, pins rerouted
-  v3.2  18.7.2017 C. -P-r-a-k-o-s-a-  various refactor, added eeprom write mode, makefile for compiling using arduino ide toolchain
+  v3.2  18.7.2017 B. -P-r-a-k-o-s-a-  various refactor, added eeprom write mode, makefile for compiling using arduino ide toolchain
+  v3.3  06.2.2019 C. -H-A-B-E-R-E-R-  check if bootloader shall be skipped when soundProgPin is high at start
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -100,18 +106,23 @@
            schematic for audio input
            =========================			
   	
-			          VCC	
-			           |	 
+                      VCC	
+                       |	 
                       | | 10K
                       | |
                        |
-			           |
+                       |
  audio in >-----||-----o------->  soundprog ( digital input pin )
                100nF   |
-	                   |  
+                       |  
                       | | 10K
                       | |
-			           |
+                       |
+                       \
+                        \===| if switch is open, bootloader will be skipped
+                         \ 
+                       |
+                       |
                       GND
 
 
@@ -119,8 +130,7 @@
                               Pinout ATtiny25/45/85
                               =====================
 			
-				
-	   			     _______
+                                     _______
                                     |   U   |
          (PCINT5/RESET/ADC0/dW) PB5-|       |- VCC
   (PCINT3/XTAL1/CLKI/OC1B/ADC3) PB3-| ATTINY|- PB2 (SCK/USCK/SCL/ADC1/T0/INT0/PCINT2) 
@@ -130,13 +140,13 @@
 
 				  
 				  
-	  			  Pinout ARDUINO  
-				  ==============
+				                  Pinout ARDUINO  
+				                  ==============
                                      _______				  
                                     |   U   |				  
                           reset/PB5-|       |- VCC				  
-                 D3/A3          PB3-| ATTINY|- PB2       D2/A1				  
-    soundprog->  D4/A2          PB4-|   85  |- PB1       D1     -> ARDUINO_LED
+             soundprog-> D3/A3  PB3-| ATTINY|- PB2       D2/A1				  
+                 D4/A2          PB4-|   85  |- PB1       D1     -> ARDUINO_LED
                                 GND-|       |- PB0       D0
                                     |_______|		
 
@@ -265,15 +275,10 @@ void (*start_appl_main) (void);
 
 #define BOOTLOADER_FUNC_ADDRESS (BOOTLOADER_STARTADDRESS - sizeof (start_appl_main))
 
-#define sei() asm volatile("sei")
-#define cli() asm volatile("cli")
-#define nop() asm volatile("nop")
-#define wdr() asm volatile("wdr")
-
 //AVR ATtiny85 Programming: EEPROM Reading and Writing - YouTube
 //https://www.youtube.com/watch?v=DO-D6YmRpJk
 
-void eeprom_write(unsigned short address, unsigned char data)
+inline void eeprom_write(unsigned short address, unsigned char data)
 {
    while(EECR & (1<<EEPE));
 
@@ -303,7 +308,7 @@ void eeprom_write(unsigned short address, unsigned char data)
 //            uint8_t FramData: global data buffer
 //
 //***************************************************************************************
-uint8_t receiveFrame()
+inline uint8_t receiveFrame()
 {
   //uint16_t store[16];
 
@@ -409,6 +414,7 @@ uint8_t receiveFrame()
    Flash: erase and write page
   -----------------------------------------------------------------------------------------------------------------------
 */
+
 #define boot_program_page_erase_write(pageaddr)     \
   {                                                 \
     uint8_t sreg;                                   \
@@ -428,7 +434,7 @@ uint8_t receiveFrame()
    write a block into flash
   -----------------------------------------------------------------------------------------------------------------------
 */
-static void
+inline void
 pgm_write_block (uint16_t flash_addr, uint16_t * block, size_t size)
 {
   uint16_t        start_addr;
@@ -507,32 +513,147 @@ void boot_program_page (uint32_t page, uint8_t *buf)
   boot_spm_busy_wait();       // Wait until the memory is written.
 }
 
-void resetRegister()
+inline void resetRegister()
 {
     DDRB = 0;
     cli();
     TCCR0B = 0; // turn off timer1
+	ADCSRA = 0;
+	ADMUX=0;
 }
 
+void startMainApplication()
+{
+	resetRegister();
+	(*start_appl_main) ();
+	
+}
+
+// use this routine on bootloader timeout and no flash values are written
 void exitBootloader()
 {  
   memcpy_P (&start_appl_main, (PGM_P) BOOTLOADER_FUNC_ADDRESS, sizeof (start_appl_main));
 
   if (start_appl_main)
   {
-    resetRegister();
-    (*start_appl_main) ();
+     startMainApplication();
   }
 }
 
+// use this routine after new flash values are written
 void runProgramm(void)
 {
-  // reintialize registers to default
-  resetRegister();
-
   pgm_write_block (BOOTLOADER_FUNC_ADDRESS, (uint16_t *) &start_appl_main, sizeof (start_appl_main));
 
-  start_appl_main();
+  startMainApplication();
+}
+
+// initADC(): tributes to
+// https://www.marcelpost.com/wiki/index.php/ATtiny85_ADC
+inline void initADC()
+{
+	  /* this function initialises the ADC 
+
+        ADC Prescaler Notes:
+	--------------------
+
+	   ADC Prescaler needs to be set so that the ADC input frequency is between 50 - 200kHz.
+  
+           For more information, see table 17.5 "ADC Prescaler Selections" in 
+           chapter 17.13.2 "ADCSRA – ADC Control and Status Register A"
+          (pages 140 and 141 on the complete ATtiny25/45/85 datasheet, Rev. 2586M–AVR–07/10)
+
+           Valid prescaler values for various clock speeds
+	
+	     Clock   Available prescaler values
+           ---------------------------------------
+             1 MHz   8 (125kHz), 16 (62.5kHz)
+             4 MHz   32 (125kHz), 64 (62.5kHz)
+             8 MHz   64 (125kHz), 128 (62.5kHz)
+            16 MHz   128 (125kHz)
+
+           Below example set prescaler to 128 for mcu running at 8MHz
+           (check the datasheet for the proper bit values to set the prescaler)
+  */
+
+  // 8-bit resolution
+  // set ADLAR to 1 to enable the Left-shift result (only bits ADC9..ADC2 are available)
+  // then, only reading ADCH is sufficient for 8-bit results (256 values)
+
+#if (INPUTAUDIOPIN == (1<<PB4))
+
+  ADMUX =
+            (1 << ADLAR) |     // left shift result
+            (0 << REFS1) |     // Sets ref. voltage to VCC, bit 1
+            (0 << REFS0) |     // Sets ref. voltage to VCC, bit 0
+            (0 << MUX3)  |     // use ADC2 for input (PB4), MUX bit 3
+            (0 << MUX2)  |     // use ADC2 for input (PB4), MUX bit 2
+            (1 << MUX1)  |     // use ADC2 for input (PB4), MUX bit 1
+            (0 << MUX0);       // use ADC2 for input (PB4), MUX bit 0
+			
+#elif (INPUTAUDIOPIN == (1<<PB3))
+
+  ADMUX =
+            (1 << ADLAR) |     // left shift result
+            (0 << REFS1) |     // Sets ref. voltage to VCC, bit 1
+            (0 << REFS0) |     // Sets ref. voltage to VCC, bit 0
+            (0 << MUX3)  |     // use ADC2 for input (PB3), MUX bit 3
+            (0 << MUX2)  |     // use ADC2 for input (PB3), MUX bit 2
+            (1 << MUX1)  |     // use ADC2 for input (PB3), MUX bit 1
+            (1 << MUX0);       // use ADC2 for input (PB3), MUX bit 0
+
+#elif (INPUTAUDIOPIN == (1<<PB2))
+
+  ADMUX =
+            (1 << ADLAR) |     // left shift result
+            (0 << REFS1) |     // Sets ref. voltage to VCC, bit 1
+            (0 << REFS0) |     // Sets ref. voltage to VCC, bit 0
+            (0 << MUX3)  |     // use ADC2 for input (PB2), MUX bit 3
+            (0 << MUX2)  |     // use ADC2 for input (PB2), MUX bit 2
+            (0 << MUX1)  |     // use ADC2 for input (PB2), MUX bit 1
+            (1 << MUX0);       // use ADC2 for input (PB2), MUX bit 0
+			
+#elif (INPUTAUDIOPIN == (1<<PB5))
+
+  ADMUX =
+            (1 << ADLAR) |     // left shift result
+            (0 << REFS1) |     // Sets ref. voltage to VCC, bit 1
+            (0 << REFS0) |     // Sets ref. voltage to VCC, bit 0
+            (0 << MUX3)  |     // use ADC2 for input (PB5), MUX bit 3
+            (0 << MUX2)  |     // use ADC2 for input (PB5), MUX bit 2
+            (0 << MUX1)  |     // use ADC2 for input (PB5), MUX bit 1
+            (0 << MUX0);       // use ADC2 for input (PB5), MUX bit 0
+			
+			
+#endif
+
+  ADCSRA = 
+            (1 << ADEN)  |     // Enable ADC 
+            (1 << ADPS2) |     // set prescaler to 64, bit 2 
+            (1 << ADPS1) |     // set prescaler to 64, bit 1 
+            (0 << ADPS0);      // set prescaler to 64, bit 0  
+
+}
+
+inline void disableADC()
+{
+	  ADCSRA &=	 ~ (1 << ADEN) ;    // disable ADC
+}
+
+// soundprog indicates if the bootloader shall be skipped.
+// if the level of soundprog exceeds a certain level at MCU start up
+// the bootloader shall be skipped to avoid program start up delay
+	
+inline void checkBootloaderSkip()
+{
+  initADC();
+
+  ADCSRA |= (1 << ADSC);         // start ADC measurement
+  while (ADCSRA & (1 << ADSC) ); // wait till conversion complete
+  ADCSRA |= (1 << ADSC);         // start ADC measurement
+  while (ADCSRA & (1 << ADSC) ); // wait till conversion complete
+  
+  if (ADCH > 196) exitBootloader(); // skip level set to 3/4 VCC
 }
 
 //***************************************************************************************
@@ -544,10 +665,12 @@ static inline void a_main()
   uint16_t time = WAITBLINKTIME;
   uint8_t timeout = BOOT_TIMEOUT;
 
+  checkBootloaderSkip();
+
   p = PINVALUE;
 
   //*************** wait for toggling input pin or timeout ******************************
-  uint8_t exitcounter = 3;
+  uint8_t exitcounter = 4;
   while (1)
   {
 
