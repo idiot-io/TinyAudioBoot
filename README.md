@@ -35,17 +35,25 @@ A good starting point for using this bootloader can be found here: [8bitmixedtap
 
 First install the avr-gcc on your system.
 
-To compile, convert into hex, setup the fuses and flash the bootloader, type:
+There is make file to compile the bootloader. 
 ```
-avr-gcc -Wall -std=c99 -Os -DF_CPU=16000000 -mmcu=attiny85 -o TinyAudioBoot.o TinyAudioBoot.c
+make
+```
 
-avr-objcopy -j .text -j .data -O ihex TinyAudioBoot.o TinyAudioBoot.hex
+To burn the fuses type
+```
+make fuse
+```
 
-avrdude -P /dev/ttyACM0 -b 19200 -c avrisp -p t85 -U efuse:w:0xfe:m -U hfuse:w:0xdd:m -U lfuse:w:0xe1:m
-
-avrdude -v -pattiny85 -c avrisp -P/dev/ttyACM0 -b19200 -Uflash:w:TinyAudioBoot.hex:i
+To transfer the data into the flash type
+```
+make flash
 
 ```
+
+The makefile is fixed to the port /dev/ttyACM0 and an avrisp programmer. 
+If you have other settings, just change the entries in the head of the makefile.
+
 
 ### installing the bootloader on the Attiny85
 
