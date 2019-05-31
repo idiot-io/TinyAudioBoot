@@ -784,7 +784,7 @@ int main()
 {
   INITAUDIOPORT;
   
-  checkBootloaderSkip();
+ // checkBootloaderSkip();
 	
   INITDEBUGPIN
   INITLED;
