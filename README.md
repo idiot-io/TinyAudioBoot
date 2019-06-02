@@ -85,9 +85,10 @@ If you have other settings, just change the entries in the head of the makefile.
 
 ### bootloader operation
 
-The bootloader can be skipped by two ways when you have setup the options in the source.
-a. by reading the audiopin and when it is above a certain level
-b. checking the level of a separate pin
+The bootloader can be skipped to avoid waiting time at startup by two ways. 
+1. by reading the audiopin and when it is above a certain level
+2. checking the level of a separate pin
+You have setup the options in the source.
 
 If you don't skip the bootloader it behaves as follows:
 
