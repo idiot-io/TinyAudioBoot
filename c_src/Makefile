@@ -10,7 +10,7 @@ F_CPU = 16000000
 DEVICE = attiny85
 
 
-BOOTLOADER_ADDRESS = 0E00 #for 1k bootloader
+BOOTLOADER_ADDRESS = 1C00 #for 1k bootloader
 
 
 FUSEOPT = -U efuse:w:0xfe:m -U hfuse:w:0xdd:m -U lfuse:w:0xe1:m

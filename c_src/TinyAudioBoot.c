@@ -220,7 +220,7 @@ uint16_t resetVector RESET_SECTION = RJMP + BOOTLOADER_ADDRESS / 2;
 #endif
 
 // It is possible to use a separate pin to skip the bootloader
-#define USE_SEPARATE_SKIPPERPIN
+//#define USE_SEPARATE_SKIPPERPIN
 #define SKIPPERPIN (1<<PB0) //
 #define SKIPPERPINVALUE (PINB&SKIPPERPIN)
 
