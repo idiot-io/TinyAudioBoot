@@ -91,6 +91,7 @@
   v3.1  04.2.2017 C. -H-A-B-E-R-E-R-  clean reset vector added, description added, pins rerouted
   v3.2  18.7.2017 B. -P-r-a-k-o-s-a-  various refactor, added eeprom write mode, makefile for compiling using arduino ide toolchain
   v3.3  06.2.2019 C. -H-A-B-E-R-E-R-  check if bootloader shall be skipped when soundProgPin is high at start
+  v3.4  02.6.2019 C. -H-A-B-E-R-E-R-  separte pin option to skip the bootloader added
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -217,6 +218,11 @@ uint16_t resetVector RESET_SECTION = RJMP + BOOTLOADER_ADDRESS / 2;
 	#define TOGGLELED 
 
 #endif
+
+// It is possible to use a separate pin to skip the bootloader
+#define USE_SEPARATE_SKIPPERPIN
+#define SKIPPERPIN (1<<PB0) //
+#define SKIPPERPINVALUE (PINB&SKIPPERPIN)
 
 #define INPUTAUDIOPIN (1<<PB3) //
 #define PINVALUE (PINB&INPUTAUDIOPIN)
@@ -640,12 +646,19 @@ inline void disableADC()
 	  ADCSRA &=	 ~ (1 << ADEN) ;    // disable ADC
 }
 
-// soundprog indicates if the bootloader shall be skipped.
-// if the level of soundprog exceeds a certain level at MCU start up
-// the bootloader shall be skipped to avoid program start up delay
-	
+// It might be usfull to skip the bootloader to avoid
+// waiting times at start up
+// There are two different options to skip the boot loader
+
+// 1. checking the level of a separate pin
+// 2. by reading the audiopin and when it is above a certain level
 inline void checkBootloaderSkip()
 {
+#ifdef USE_SEPARATE_SKIPPERPIN
+
+  if(SKIPPERPINVALUE==0) exitBootloader();
+
+#else#
   initADC();
 
   ADCSRA |= (1 << ADSC);         // start ADC measurement
@@ -654,6 +667,7 @@ inline void checkBootloaderSkip()
   while (ADCSRA & (1 << ADSC) ); // wait till conversion complete
   
   if (ADCH > 75) exitBootloader(); // skip the bootloader if the right button is pressed
+#endif
 }
 
 //***************************************************************************************
@@ -784,7 +798,7 @@ int main()
 {
   INITAUDIOPORT;
   
- // checkBootloaderSkip();
+  checkBootloaderSkip();
 	
   INITDEBUGPIN
   INITLED;

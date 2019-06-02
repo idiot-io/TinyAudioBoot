@@ -31,34 +31,9 @@ A good starting point for using this bootloader can be found here: [8bitmixedtap
 
 ## How?
 
-### compiling the bootloader on linux
-
-First install the avr-gcc on your system.
-
-There is make file to compile the bootloader. 
-```
-make
-```
-
-To burn the fuses type
-```
-make fuse
-```
-
-To transfer the data into the flash type
-```
-make flash
-
-```
-
-The makefile is fixed to the port /dev/ttyACM0 and an avrisp programmer. 
-If you have other settings, just change the entries in the head of the makefile.
-
-
 ### installing the bootloader on the Attiny85
 
-Firtly, the bootloader must be flashed onto the microcontroller with an ISP programmer.
-You can use an [Arduino-Uno as ISP-pogrammer] (https://www.frag-duino.de/index.php/maker-faq/37-atmel-attiny-85-mit-arduino-arduinoisp-flashen-und-programmieren)
+First, the bootloader must be flashed onto the microcontroller with an ISP programmer.
 
 There are precompiled HEX files (one file per configuration) e.g.:
 
@@ -81,13 +56,43 @@ hfuse:w:0xdd:m -U lfuse:w:0xe1:m
 
 This is the command line to program the bootloader with audio input at PB3 and Led at PB1 (again for ttyACM0):
 > avrdude -v -pattiny85 -c avrisp -P/dev/ttyACM0 -b19200
--Uflash:w:/home/dusjagr/Arduino/AttinySound-master/AudioBoot/AudioBootAttiny85_InputPB3_LEDPB1.hex:i
+-Uflash:w:AudioBootAttiny85_InputPB3_LEDPB1.hex:i
 
+### compiling the bootloader on linux with the make file
+
+First install the avr-gcc on your system.
+
+There is a make file in the c_src folder.
+
+To compile the bootloader type 
+```
+make
+```
+
+To burn the fuses type
+```
+make fuse
+```
+
+To transfer the data into the flash type
+```
+make flash
+
+```
+
+The makefile is fixed to the port /dev/ttyACM0 and for the use of an avrisp programmer. 
+If you have other settings, just change the entries in the head of the makefile.
 
 ### bootloader operation
 
+The bootloader can be skipped by two ways when you have setup the options in the source.
+a. by reading the audiopin and when it is above a certain level
+b. checking the level of a separate pin
+
+If you don't skip the bootloader it behaves as follows:
+
 1. After reset the bootloader waits for about 5 seconds for a signal from the audio input. 
-   During this period the LED blinks at 1/2 Hz
+   During this period the LED blinks at 1/2 Hz. 
    
 2. If there was no signal, the bootloader starts the main program from flash 
 
