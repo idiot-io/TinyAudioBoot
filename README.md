@@ -3,6 +3,13 @@ Audio Bootloader for Attiny85 Microcontrollers
 
 ## What?
 
+sudo apt-get install arduino-mk
+pip3 install pyserial
+
+export ARDUINO_DIR=/opt/arduino
+export ARDMK_DIR=/usr/share/arduino
+export AVR_TOOLS_DIR=/usr/include
+
 You can simply program an Attiny85 via the audio output of a PC, Smartphone or audio-player.
 
 <p align="left">
