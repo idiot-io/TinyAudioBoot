@@ -11,6 +11,7 @@ PROJECT_DIR       = /mnt/c/dev/TinyAudioBoot/TinyAudioBoot
 ### ARDMK_DIR
 ### Path to the Arduino-Makefile directory.
 ARDMK_DIR         = /usr/share/arduino/
+ARDMK_DIR         = /opt/Arduino-Makefile/
 
 ### ARDUINO_DIR
 ### Path to the Arduino application and resources directory.
@@ -22,9 +23,11 @@ USER_LIB_PATH    :=  $(PROJECT_DIR)/lib
 
 ### BOARD_TAG
 ### It must be set to the board you are currently using. (i.e uno, mega2560, etc.)
-BOARD_TAG         = attiny85
 ALTERNATE_CORE_PATH = $(PROJECT_DIR)/../ATTinyCore/avr/
-
+BOARD_TAG 	   = attinyx5
+BOARD_SUB 	   = 85
+VARIANT        = tinyX5
+F_CPU 		   = 8000000L
 
 ### MONITOR_BAUDRATE
 ### It must be set to Serial baudrate value you are using.
