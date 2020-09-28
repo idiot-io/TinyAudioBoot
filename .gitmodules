@@ -1,0 +1,4 @@
+[submodule "ATTinyCore"]
+	path = ATTinyCore
+	url = https://github.com/SpenceKonde/ATTinyCore
+	branch = master
