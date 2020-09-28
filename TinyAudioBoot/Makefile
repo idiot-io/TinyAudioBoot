@@ -4,9 +4,14 @@
 ### to https://github.com/sudar/Arduino-Makefile/blob/master/arduino-mk-vars.md
 ### Original project where this Makefile comes from: https://github.com/WeAreLeka/Bare-Arduino-Project
 
+
 #####################################
 ##### Tinybootloader specials #######
 #####################################
+
+### PROJECT_DIR
+### This is the path to where you have created/cloned your project
+PROJECT_DIR       = /mnt/c/dev/TinyAudioBoot/TinyAudioBoot
 
 # comments from budi
 # hexadecimal address for bootloader section to begin. To calculate the best value:
@@ -16,15 +21,21 @@
 # - round that down to 94 - our new bootloader address is 94 * 64 = 6016, in hex = 1780
 BOOTLOADER_ADDRESS = 0x1BC0
 
-## ??
-LOCKOPT = -U lock:w:0x2f:m
+#PROGRAMMER contains AVRDUDE options to address your programmer
+PROGRAMMER = -c USBasp
+
+
+## overwriting protection, used for PB05
+#possibly arduino-makefile allready supports it, need to verfiy. 
+#LOCKOPT = -U lock:w:0x2f:m
+#this is a valid var for arduino-mk
+ISP_LOCK_FUSE_POST = 0x2f
+
 
 #F_CPU = 16500000
 F_CPU 		   = 8000000L
 DEFINES 	   = -DBOOTLOADER_ADDRESS=0x$(BOOTLOADER_ADDRESS)
 CPPFLAGS = -g -Os -w -W -ffunction-sections -fdata-sections  -MMD -I.  $(DEFINES) $(ARDUINO_BOARD_INCLUDES) 
-#PROGRAMMER contains AVRDUDE options to address your programmer
-PROGRAMMER = -c USBasp
 
 FUSEOPT_t85 = -U lfuse:w:0xe1:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
 FUSEOPT_t85_DISABLERESET = -U lfuse:w:0xe1:m -U efuse:w:0xfe:m -U hfuse:w:0x5d:m
@@ -32,15 +43,13 @@ FUSEOPT_t85_DISABLERESET = -U lfuse:w:0xe1:m -U efuse:w:0xfe:m -U hfuse:w:0x5d:m
 FUSEOPT = $(FUSEOPT_t85)
 
 
-ARDUINO_BOARD_INCLUDES = -I$(ARDUINO_BOARD_CORE) -I$(ARDUINO_BOARD_PINS) -I../TinyAudioBoot
+#ARDUINO_BOARD_INCLUDES = -I$(ARDUINO_BOARD_CORE) -I$(ARDUINO_BOARD_PINS) -I../TinyAudioBoot
 
 ##################################################################
 ##################################################################
 ##################################################################
 
-### PROJECT_DIR
-### This is the path to where you have created/cloned your project
-PROJECT_DIR       = /mnt/c/dev/TinyAudioBoot/TinyAudioBoot
+
  
 ### ARDMK_DIR
 ### Path to the Arduino-Makefile directory.
@@ -49,7 +58,7 @@ ARDMK_DIR         = $(PROJECT_DIR)/../Arduino-mk
 					
 ### ARDUINO_DIR
 ### Path to the Arduino application and resources directory.
-ARDUINO_DIR       = /opt/arduino
+ARDUINO_DIR       = $(PROJECT_DIR)/../arduino
 
 ### USER_LIB_PATH
 ### Path to where the your project's libraries are stored.

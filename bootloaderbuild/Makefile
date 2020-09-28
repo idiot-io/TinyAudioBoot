@@ -28,10 +28,19 @@ ifeq ($(OS),Windows_NT)
 	AVRDIR		= $(ARDUINOAPPDIR)/hardware/tools/avr
 	AVRINCLUDE	= $(ARDUINOAPPDIR)/hardware/tools/avr/avr/include
 else
-	#OSX 
-	ARDUINOAPPDIR = /Applications/Arduino.app
-	AVRDIR		= $(ARDUINOAPPDIR)/Contents/Java/hardware/tools/avr
-	AVRINCLUDE	= $(ARDUINOAPPDIR)/Contents/Java/hardware/tools/avr/avr/include
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+	#linux
+		ARDUINOAPPDIR = ../arduino/
+		AVRDIR		= $(ARDUINOAPPDIR)/hardware/tools/avr
+		AVRINCLUDE	= $(ARDUINOAPPDIR)/hardware/tools/avr/avr/include
+    endif
+    ifeq ($(UNAME_S),Darwin)
+		#OSX 
+		ARDUINOAPPDIR = /Applications/Arduino.app
+		AVRDIR		= $(ARDUINOAPPDIR)/Contents/Java/hardware/tools/avr
+		AVRINCLUDE	= $(ARDUINOAPPDIR)/Contents/Java/hardware/tools/avr/avr/include
+    endif
 endif
 AVRBIN		= $(AVRDIR)/bin
 
