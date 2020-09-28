@@ -190,7 +190,7 @@ uint16_t resetVector RESET_SECTION = RJMP + BOOTLOADER_ADDRESS / 2;
 #define USELED
 #ifdef USELED
 
-	#define LEDPORT    ( 1<<PB1 ); //PB1 pin 6 Attiny85
+	#define LEDPORT    ( 1<<PB0 ); //PB0 pin 6 Attiny85
 	#define INITLED    { DDRB|=LEDPORT; }
 
 	#define LEDON      { PORTB|=LEDPORT;}
