@@ -11,8 +11,9 @@ PROJECT_DIR       = /mnt/c/dev/TinyAudioBoot/TinyAudioBoot
 ### ARDMK_DIR
 ### Path to the Arduino-Makefile directory.
 ARDMK_DIR         = /usr/share/arduino/
-ARDMK_DIR         = /opt/Arduino-Makefile/
-
+##if you did 'git submodule updtae --init' you will have this
+ARDMK_DIR         = /mnt/c/dev/TinyAudioBoot/submodules/Arduino-mk
+					
 ### ARDUINO_DIR
 ### Path to the Arduino application and resources directory.
 ARDUINO_DIR       = /opt/arduino
@@ -23,7 +24,7 @@ USER_LIB_PATH    :=  $(PROJECT_DIR)/lib
 
 ### BOARD_TAG
 ### It must be set to the board you are currently using. (i.e uno, mega2560, etc.)
-ALTERNATE_CORE_PATH = $(PROJECT_DIR)/../ATTinyCore/avr/
+ALTERNATE_CORE_PATH = /mnt/c/dev/TinyAudioBoot/submodules/ATTinyCore/avr/
 BOARD_TAG 	   = attinyx5
 BOARD_SUB 	   = 85
 VARIANT        = tinyX5
