@@ -9,6 +9,13 @@
 /build/*.d
 /build/*.o
 
+/bootloaderbuilder/TinyAudioBoot.ino.lst
+/bootloaderbuilder/*.bin
+/bootloaderbuilder/*.map
+/bootloaderbuilder/*.cpp.lst
+/bootloaderbuilder/*.d
+/bootloaderbuilder/*.o
+
 /build/main.hex
 /java_source/test.wav
 /build/test.wav
