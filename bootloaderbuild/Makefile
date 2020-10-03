@@ -26,7 +26,8 @@ ifeq ($(OS),Windows_NT)
 	#Windows
 	ARDUINOAPPDIR = C:/bin/arduino/
 	AVRDIR		= $(ARDUINOAPPDIR)/hardware/tools/avr
-	AVRINCLUDE	= $(ARDUINOAPPDIR)/hardware/tools/avr/avr/include
+	#i dont see AVRINCLUDE used
+
 else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
@@ -45,19 +46,21 @@ endif
 AVRBIN		= $(AVRDIR)/bin
 
 DEVICE = attiny85
+#DEVICE = t85
 
 # hexadecimal address for bootloader section to begin. To calculate the best value:
 # - make clean; make main.hex; ### output will list data: 2124 (or something like that)
 # - for the size of your device (8kb = 1024 * 8 = 8192) subtract above value 2124... = 6068
 # - How many pages in is that? 6068 / 64 (tiny85 page size in bytes) = 94.8125
 # - round that down to 94 - our new bootloader address is 94 * 64 = 6016, in hex = 1780
-BOOTLOADER_ADDRESS = 0x1BC0
+BOOTLOADER_ADDRESS = 0x1C00
 
 LOCKOPT = -U lock:w:0x2f:m
 
 #PROGRAMMER contains AVRDUDE options to address your programmer
-PROGRAMMER = -c USBasp
-
+PROGRAMMER = -c stk500v1
+SERIAL = COM8
+BAUD = 19200
 FUSEOPT_t85 = -U lfuse:w:0xe1:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
 FUSEOPT_t85_DISABLERESET = -U lfuse:w:0xe1:m -U efuse:w:0xfe:m -U hfuse:w:0x5d:m
 
@@ -72,7 +75,7 @@ ARDUINO_BOARD_PINS = ../ATTinyCore/avr/variants/tinyX5
 ARDUINO_BOARD_INCLUDES = -I$(ARDUINO_BOARD_CORE) -I$(ARDUINO_BOARD_PINS) -I../TinyAudioBoot
 
 # Tools:
-AVRDUDE = $(AVRBIN)/avrdude $(PROGRAMMER) -p $(DEVICE) -C $(AVRDIR)/etc/avrdude.conf
+AVRDUDE = $(AVRBIN)/avrdude $(PROGRAMMER) -p $(DEVICE) -b$(BAUD)  -P$(SERIAL) -C $(AVRDIR)/etc/avrdude.conf
 CC = $(AVRBIN)/avr-gcc
 CPP = $(AVRBIN)/avr-g++
 AVROBJCOPY= $(AVRBIN)/avr-objcopy
@@ -115,14 +118,14 @@ all: main.hex
 	$(GCC) $(CPPFLAGS) -S $< -o $@
 
 flash:	all
-	$(AVRDUDE) $(FUSEOPT)
-	$(AVRDUDE) -Uflash:w:main.hex:i 
+	$(AVRDUDE) $(FUSEOPT) -b 19200  -PCOM8
+	$(AVRDUDE) -Uflash:w:main.hex:i -b 19200  -PCOM8
 
 readflash:
 	$(AVRDUDE) -U flash:r:read.hex:i
 
 fuse:
-	$(AVRDUDE) $(FUSEOPT)
+	$(AVRDUDE) $(FUSEOPT) -b 19200  -PCOM8
 	
 disablereset:
 	$(AVRDUDE) $(FUSEOPT_t85_DISABLERESET)
@@ -131,7 +134,7 @@ lock:
 	$(AVRDUDE) $(LOCKOPT)
 
 read_fuses:
-	$(UISP) --rd_fuses
+	$(UISP) --rd_fuses -b 19200  -PCOM8
 
 clean:
 	rm -f main.hex main.bin *.o main.s main.cpp.lst TinyAudioBoot.ino.lst main.map main.d TinyAudioBoot.d SendOnlySoftwareSerial.cpp.lst SendOnlySoftwareSerial.d
@@ -146,6 +149,7 @@ main.hex:	main.bin
 	rm -f main.hex main.eep.hex
 	$(AVROBJCOPY) -j .text -j .data -O ihex main.bin main.hex
 	@echo Size of binary hexfile. Use the "data" size to calculate the bootloader address
+	@echo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	$(AVRSIZE) main.hex
 
 disasm:	main.bin
