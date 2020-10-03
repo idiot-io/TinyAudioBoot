@@ -1,8 +1,0 @@
-[submodule "ATTinyCore"]
-	path = ATTinyCore
-	url = https://github.com/SpenceKonde/ATTinyCore
-	branch = master
-[submodule "Arduino-mk"]
-	path = Arduino-mk
-	url = https://github.com/sudar/Arduino-Makefile.git
-	branch = master
