@@ -9,12 +9,12 @@
 /build/*.d
 /build/*.o
 
-/bootloaderbuilder/TinyAudioBoot.ino.lst
-/bootloaderbuilder/*.bin
-/bootloaderbuilder/*.map
-/bootloaderbuilder/*.cpp.lst
-/bootloaderbuilder/*.d
-/bootloaderbuilder/*.o
+bootloaderbuild/main.bin
+bootloaderbuild/main.cpp.lst
+bootloaderbuild/main.d
+bootloaderbuild/main.hex
+bootloaderbuild/main.map
+bootloaderbuild/main.o
 
 /build/main.hex
 /java_source/test.wav
