@@ -46,7 +46,6 @@ endif
 AVRBIN		= $(AVRDIR)/bin
 
 DEVICE = attiny85
-#DEVICE = t85
 
 # hexadecimal address for bootloader section to begin. To calculate the best value:
 # - make clean; make main.hex; ### output will list data: 2124 (or something like that)
@@ -66,10 +65,10 @@ FUSEOPT_t85_DISABLERESET = -U lfuse:w:0xe1:m -U efuse:w:0xfe:m -U hfuse:w:0x5d:m
 
 FUSEOPT = $(FUSEOPT_t85)
 
-#where are the ATTtinyCores?
-#make sure to RUN 'git submodule update --init' to get it. 
-ARDUINO_BOARD_CORE = ../ATTinyCore/avr/cores/tiny
-ARDUINO_BOARD_PINS = ../ATTinyCore/avr/variants/tinyX5
+#where  is 8bitmixtape core?
+#you will have to adapt to your system, after you install the 8BitMixtape in arduino
+ARDUINO_BOARD_CORE = C:\Users\user\AppData\Local\Arduino15\packages\8BitMixtape\hardware\avr\0.0.28\cores\tiny
+ARDUINO_BOARD_PINS = C:\Users\user\AppData\Local\Arduino15\packages\8BitMixtape\hardware\avr\0.0.28\variants\tinyX5
 #ARDUINO_BOARD_CORE = /Users/xcorex/Library/Arduino15/packages/ATTinyCore/hardware/avr/1.0.6/cores/tiny
 #ARDUINO_BOARD_PINS = /Users/xcorex/Library/Arduino15/packages/ATTinyCore/hardware/avr/1.0.6/variants/tinyX5
 ARDUINO_BOARD_INCLUDES = -I$(ARDUINO_BOARD_CORE) -I$(ARDUINO_BOARD_PINS) -I../TinyAudioBoot
@@ -139,6 +138,8 @@ read_fuses:
 clean:
 	rm -f main.hex main.bin *.o main.s main.cpp.lst TinyAudioBoot.ino.lst main.map main.d TinyAudioBoot.d SendOnlySoftwareSerial.cpp.lst SendOnlySoftwareSerial.d
 
+winClean:
+	del /f main.hex main.bin *.o main.s main.cpp.lst TinyAudioBoot.ino.lst main.map main.d TinyAudioBoot.d
 # file targets:
 
 #link files
@@ -146,8 +147,7 @@ main.bin:	$(OBJECTS)
 	$(CC) -w -Os -Wl,--gc-sections -mmcu=$(DEVICE) -o main.bin $(OBJECTS) $(LDFLAGS)
 
 main.hex:	main.bin
-	rm -f main.hex main.eep.hex
-	$(AVROBJCOPY) -j .text -j .data -O ihex main.bin main.hex
+	$(AVROBJCOPY) -j .text -j .data -O ihex main.bin main.hex 
 	@echo Size of binary hexfile. Use the "data" size to calculate the bootloader address
 	@echo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	$(AVRSIZE) main.hex

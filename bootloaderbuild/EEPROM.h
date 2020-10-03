@@ -1,1 +1,1 @@
-../TinyAudioBoot/EEPROM.h
+C:/dev/TinyAudioBoot/TinyAudioBoot/EEPROM.h
