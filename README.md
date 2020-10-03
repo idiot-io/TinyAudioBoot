@@ -1,6 +1,8 @@
 # TinyAudioBoot
 Audio Bootloader for Attiny85 Microcontrollers
 
+se https://wiki.idiot.io/bootloader for updates until merged
+
 ## What?
 
 sudo apt-get install arduino-mk
