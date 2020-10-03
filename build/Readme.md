@@ -45,7 +45,11 @@ notice its reversed then unix, first the link to create then the target.
 New-Item -ItemType SymbolicLink -Path C:\dev\TinyAudioBoot\bootloaderbuild\main.cpp -Target C:\dev\TinyAudioBoot\TinyAudioBoot\TinyAudioBoot.c
 New-Item -ItemType SymbolicLink -Path C:\dev\TinyAudioBoot\bootloaderbuild\EEPROM.h -Target C:\dev\TinyAudioBoot\TinyAudioBoot\EEPROM.h
 ```
-
+if oyou yu want5 to experimnte with new skipper mode, delete the old symlink and try
+```
+New-Item -ItemType SymbolicLink -Path C:\dev\TinyAudioBoot\bootloaderbuild\main.cpp -Target C:\dev\TinyAudioBoot\c_src\TinyAudioBoot.c
+New-Item -ItemType SymbolicLink -Path C:\dev\TinyAudioBoot\bootloaderbuild\EEPROM.h -Target C:\dev\TinyAudioBoot\c_src\EEPROM.h
+```
 
 ## fix address size
 
@@ -74,6 +78,12 @@ output will list data: 2124 (or something like that)
 and feed it into ``TinyAudioBoot\TinyAudioBoot.c``  
 there is a var there. 
 ``#define BOOTLOADER_ADDRESS     0x1C00``  
+
+**error**   
+if you get   
+```main.bin section `.text' is not within region `text'```  
+
+change your ``#define BOOTLOADER_ADDRESS``  to  lower value like ``180B`` and run again
 
 # compile and flash
 
